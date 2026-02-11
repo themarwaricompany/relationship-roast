@@ -1,22 +1,21 @@
 import { create } from 'zustand';
 
 interface QuizState {
-  // Setup
   partnerAName: string;
   partnerBName: string;
   partnerAGender: string;
   partnerBGender: string;
   relationshipStatus: 'dating' | 'married' | 'livein';
   
-  // Quiz state
+  sessionId: string | null;
+  shareCode: string | null;
+  
   currentPartner: 'a' | 'b';
   partnerAAnswers: Record<string, string>;
   partnerBAnswers: Record<string, string>;
   
-  // Status
-  status: 'setup' | 'partner_a_quiz' | 'waiting_for_b' | 'partner_b_quiz' | 'completed';
+  status: 'setup' | 'partner_a_quiz' | 'waiting_for_b' | 'partner_b_quiz' | 'generating' | 'completed';
   
-  // Actions
   setSetup: (data: {
     partnerAName: string;
     partnerBName: string;
@@ -24,10 +23,12 @@ interface QuizState {
     partnerBGender: string;
     relationshipStatus: 'dating' | 'married' | 'livein';
   }) => void;
+  setSessionId: (id: string, shareCode: string) => void;
   setAnswer: (questionId: string, answer: string) => void;
   completePartnerA: () => void;
   startPartnerB: () => void;
   completePartnerB: () => void;
+  setStatus: (status: QuizState['status']) => void;
   reset: () => void;
 }
 
@@ -37,12 +38,15 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   partnerAGender: 'male',
   partnerBGender: 'female',
   relationshipStatus: 'dating',
+  sessionId: null,
+  shareCode: null,
   currentPartner: 'a',
   partnerAAnswers: {},
   partnerBAnswers: {},
   status: 'setup',
 
   setSetup: (data) => set({ ...data, status: 'partner_a_quiz', currentPartner: 'a' }),
+  setSessionId: (id, shareCode) => set({ sessionId: id, shareCode }),
 
   setAnswer: (questionId, answer) => {
     const state = get();
@@ -54,10 +58,9 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   },
 
   completePartnerA: () => set({ status: 'waiting_for_b' }),
-
   startPartnerB: () => set({ status: 'partner_b_quiz', currentPartner: 'b' }),
-
-  completePartnerB: () => set({ status: 'completed' }),
+  completePartnerB: () => set({ status: 'generating' }),
+  setStatus: (status) => set({ status }),
 
   reset: () => set({
     partnerAName: '',
@@ -65,6 +68,8 @@ export const useQuizStore = create<QuizState>((set, get) => ({
     partnerAGender: 'male',
     partnerBGender: 'female',
     relationshipStatus: 'dating',
+    sessionId: null,
+    shareCode: null,
     currentPartner: 'a',
     partnerAAnswers: {},
     partnerBAnswers: {},

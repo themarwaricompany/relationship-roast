@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuizStore } from '@/lib/quizStore';
-import { getQuestionsForStatus, categoryInfo } from '@/data/questions';
+import { getQuestionsForStatus, categoryInfo, calculateScores } from '@/data/questions';
+import { submitPartnerAnswers } from '@/lib/quizApi';
+import { toast } from 'sonner';
 
 const optionLabels = ['A', 'B', 'C', 'D'] as const;
 const optionKeys = ['a', 'b', 'c', 'd'] as const;
@@ -18,8 +20,7 @@ const QuizFlow = () => {
     [store.relationshipStatus]
   );
 
-  // Redirect if no setup
-  if (!store.partnerAName) {
+  if (!store.partnerAName || !store.sessionId) {
     navigate('/quiz/new');
     return null;
   }
@@ -29,7 +30,6 @@ const QuizFlow = () => {
   const isPartnerA = store.currentPartner === 'a';
   const currentName = isPartnerA ? store.partnerAName : store.partnerBName;
 
-  // Detect category change
   const prevCategory = currentIndex > 0 ? questions[currentIndex - 1].category : null;
   const showCategoryHeader = currentQuestion.category !== prevCategory;
 
@@ -37,18 +37,30 @@ const QuizFlow = () => {
     setSelectedOption(option);
     store.setAnswer(currentQuestion.id, option);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (currentIndex < questions.length - 1) {
         setCurrentIndex(currentIndex + 1);
         setSelectedOption(null);
       } else {
         // Quiz complete for current partner
-        if (isPartnerA) {
-          store.completePartnerA();
-          navigate('/quiz/waiting');
-        } else {
-          store.completePartnerB();
-          navigate('/results');
+        try {
+          const answers = isPartnerA
+            ? { ...store.partnerAAnswers, [currentQuestion.id]: option }
+            : { ...store.partnerBAnswers, [currentQuestion.id]: option };
+          const score = calculateScores(answers, store.currentPartner);
+          
+          await submitPartnerAnswers(store.sessionId!, store.currentPartner, answers, score);
+
+          if (isPartnerA) {
+            store.completePartnerA();
+            navigate('/quiz/waiting');
+          } else {
+            store.completePartnerB();
+            navigate('/results');
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to save answers, please try again');
         }
       }
     }, 400);
@@ -58,7 +70,6 @@ const QuizFlow = () => {
 
   return (
     <div className="min-h-screen bg-hero-gradient flex flex-col px-4 py-6">
-      {/* Header */}
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground font-body">
@@ -69,7 +80,6 @@ const QuizFlow = () => {
           </span>
         </div>
 
-        {/* Progress Bar */}
         <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-6">
           <motion.div
             className="h-full bg-neon-gradient rounded-full"
@@ -80,7 +90,6 @@ const QuizFlow = () => {
         </div>
       </div>
 
-      {/* Question Area */}
       <div className="flex-1 flex items-center justify-center">
         <div className="max-w-md mx-auto w-full">
           <AnimatePresence mode="wait">
@@ -91,7 +100,6 @@ const QuizFlow = () => {
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Category Header */}
               {showCategoryHeader && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -103,12 +111,10 @@ const QuizFlow = () => {
                 </motion.div>
               )}
 
-              {/* Question */}
               <h2 className="text-xl md:text-2xl font-heading font-bold mb-8 leading-snug">
                 {currentQuestion.questionText}
               </h2>
 
-              {/* Options */}
               <div className="space-y-3">
                 {optionKeys.map((key, i) => {
                   const isSelected = selectedOption === key;

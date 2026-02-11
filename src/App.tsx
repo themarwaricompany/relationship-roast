@@ -8,6 +8,7 @@ import QuizSetup from "./pages/QuizSetup";
 import QuizFlow from "./pages/QuizFlow";
 import WaitingScreen from "./pages/WaitingScreen";
 import Results from "./pages/Results";
+import JoinQuiz from "./pages/JoinQuiz";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/quiz/play" element={<QuizFlow />} />
           <Route path="/quiz/waiting" element={<WaitingScreen />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/join/:shareCode" element={<JoinQuiz />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
