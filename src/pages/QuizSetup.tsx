@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuizStore } from '@/lib/quizStore';
+import { createQuizSession } from '@/lib/quizApi';
+import { toast } from 'sonner';
 
 const genderOptions = [
   { value: 'male', label: 'Male 🙋‍♂️' },
@@ -10,33 +12,52 @@ const genderOptions = [
 ];
 
 const statusOptions = [
-  { value: 'dating', label: '💑 Dating', emoji: '💑' },
-  { value: 'married', label: '💍 Married', emoji: '💍' },
-  { value: 'livein', label: '🏠 Live-in', emoji: '🏠' },
+  { value: 'dating', label: '💑 Dating' },
+  { value: 'married', label: '💍 Married' },
+  { value: 'livein', label: '🏠 Live-in' },
 ];
 
 const QuizSetup = () => {
   const navigate = useNavigate();
   const setSetup = useQuizStore((s) => s.setSetup);
+  const setSessionId = useQuizStore((s) => s.setSessionId);
 
   const [partnerAName, setPartnerAName] = useState('');
   const [partnerBName, setPartnerBName] = useState('');
   const [partnerAGender, setPartnerAGender] = useState('male');
   const [partnerBGender, setPartnerBGender] = useState('female');
   const [relationshipStatus, setRelationshipStatus] = useState<'dating' | 'married' | 'livein'>('dating');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const canSubmit = partnerAName.trim() && partnerBName.trim();
+  const canSubmit = partnerAName.trim() && partnerBName.trim() && !isLoading;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
-    setSetup({
-      partnerAName: partnerAName.trim(),
-      partnerBName: partnerBName.trim(),
-      partnerAGender,
-      partnerBGender,
-      relationshipStatus,
-    });
-    navigate('/quiz/play');
+    setIsLoading(true);
+    try {
+      const session = await createQuizSession({
+        partnerAName: partnerAName.trim(),
+        partnerBName: partnerBName.trim(),
+        partnerAGender,
+        partnerBGender,
+        relationshipStatus,
+      });
+
+      setSetup({
+        partnerAName: partnerAName.trim(),
+        partnerBName: partnerBName.trim(),
+        partnerAGender,
+        partnerBGender,
+        relationshipStatus,
+      });
+      setSessionId(session.id, session.share_code);
+      navigate('/quiz/play');
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong, try again!');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,7 +76,6 @@ const QuizSetup = () => {
         </p>
 
         <div className="space-y-6">
-          {/* Partner A Name */}
           <div>
             <label className="block text-sm font-body text-muted-foreground mb-1.5">Your Name</label>
             <input
@@ -68,7 +88,6 @@ const QuizSetup = () => {
             />
           </div>
 
-          {/* Partner A Gender */}
           <div>
             <label className="block text-sm font-body text-muted-foreground mb-1.5">Your Gender</label>
             <div className="flex gap-2">
@@ -88,7 +107,6 @@ const QuizSetup = () => {
             </div>
           </div>
 
-          {/* Partner B Name */}
           <div>
             <label className="block text-sm font-body text-muted-foreground mb-1.5">Partner's Name</label>
             <input
@@ -101,7 +119,6 @@ const QuizSetup = () => {
             />
           </div>
 
-          {/* Partner B Gender */}
           <div>
             <label className="block text-sm font-body text-muted-foreground mb-1.5">Partner's Gender</label>
             <div className="flex gap-2">
@@ -121,7 +138,6 @@ const QuizSetup = () => {
             </div>
           </div>
 
-          {/* Relationship Status */}
           <div>
             <label className="block text-sm font-body text-muted-foreground mb-1.5">Relationship Status</label>
             <div className="flex gap-2">
@@ -141,7 +157,6 @@ const QuizSetup = () => {
             </div>
           </div>
 
-          {/* Submit */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -153,7 +168,7 @@ const QuizSetup = () => {
                 : 'bg-muted text-muted-foreground cursor-not-allowed'
             }`}
           >
-            Let's Go →
+            {isLoading ? 'Setting up...' : "Let's Go →"}
           </motion.button>
         </div>
       </motion.div>

@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      quiz_sessions: {
+        Row: {
+          ai_result: Json | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          partner_a_answers: Json | null
+          partner_a_completed_at: string | null
+          partner_a_gender: string
+          partner_a_name: string
+          partner_a_score: number | null
+          partner_b_answers: Json | null
+          partner_b_completed_at: string | null
+          partner_b_gender: string
+          partner_b_name: string
+          partner_b_score: number | null
+          relationship_status: string
+          share_code: string
+          status: string
+        }
+        Insert: {
+          ai_result?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          partner_a_answers?: Json | null
+          partner_a_completed_at?: string | null
+          partner_a_gender?: string
+          partner_a_name: string
+          partner_a_score?: number | null
+          partner_b_answers?: Json | null
+          partner_b_completed_at?: string | null
+          partner_b_gender?: string
+          partner_b_name: string
+          partner_b_score?: number | null
+          relationship_status?: string
+          share_code: string
+          status?: string
+        }
+        Update: {
+          ai_result?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          partner_a_answers?: Json | null
+          partner_a_completed_at?: string | null
+          partner_a_gender?: string
+          partner_a_name?: string
+          partner_a_score?: number | null
+          partner_b_answers?: Json | null
+          partner_b_completed_at?: string | null
+          partner_b_gender?: string
+          partner_b_name?: string
+          partner_b_score?: number | null
+          relationship_status?: string
+          share_code?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
