@@ -1,13 +1,11 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { QUESTIONS } from "@/lib/questions";
-import { normalizeScore, getTitle } from "@/lib/scoring";
+import { getTitle } from "@/lib/scoring";
 import type { QuizSession, AIResult, OptionKey } from "@/types";
 import { CATEGORY_ORDER, CATEGORIES } from "@/lib/constants";
 
-function getAnthropicClient() {
-    return new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY || "",
-    });
+function getGemini() {
+    return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 }
 
 export async function generateResults(session: QuizSession): Promise<AIResult> {
@@ -74,20 +72,23 @@ IMPORTANT:
 - Return ONLY the JSON, no markdown or explanation`;
 
     try {
-        const message = await getAnthropicClient().messages.create({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1500,
-            messages: [{ role: "user", content: prompt }],
+        const response = await getGemini().models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: {
+                responseMimeType: "application/json",
+                temperature: 0.9,
+                maxOutputTokens: 1500,
+            },
         });
 
-        // Extract text from response
-        const textBlock = message.content.find((block) => block.type === "text");
-        if (!textBlock || textBlock.type !== "text") {
-            throw new Error("No text in AI response");
+        const text = response.text;
+        if (!text) {
+            throw new Error("No text in Gemini response");
         }
 
         // Parse JSON (handle potential markdown wrapping)
-        let jsonText = textBlock.text.trim();
+        let jsonText = text.trim();
         if (jsonText.startsWith("```")) {
             jsonText = jsonText.replace(/```json?\n?/g, "").replace(/```$/g, "").trim();
         }
