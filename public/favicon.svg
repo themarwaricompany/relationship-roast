@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Heart background -->
+  <path d="M32 56 C32 56 6 38 6 18 C6 8 14 2 22 2 C27 2 30 6 32 10 C34 6 37 2 42 2 C50 2 58 8 58 18 C58 38 32 56 32 56Z" fill="#DC2626"/>
+  
+  <!-- Couple - Man -->
+  <g transform="translate(13, 14)">
+    <circle cx="8" cy="8" r="5" fill="#D4A574"/>
+    <path d="M3 7 Q3 3 8 3 Q13 3 13 7" fill="#B45309"/>
+    <rect x="3" y="15" width="10" height="16" rx="2" fill="#D97706"/>
+  </g>
+  
+  <!-- Couple - Woman -->
+  <g transform="translate(33, 14)">
+    <circle cx="8" cy="8" r="5" fill="#D4A574"/>
+    <path d="M3 8 Q3 2 8 2 Q13 2 13 8" fill="#1C1917"/>
+    <circle cx="8" cy="6" r="1" fill="#FFF"/>
+    <rect x="3" y="15" width="10" height="16" rx="2" fill="#B91C1C"/>
+  </g>
+  
+  <!-- Small heart -->
+  <path d="M32 12 C32 12 29 10 29 8.5 C29 7.5 30 7 31 7 C31.5 7 32 7.5 32 8 C32 7.5 32.5 7 33 7 C34 7 35 7.5 35 8.5 C35 10 32 12 32 12Z" fill="#FFF"/>
+</svg>

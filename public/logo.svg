@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- Heart shape -->
+  <path d="M100 180 C100 180 20 120 20 70 C20 40 45 20 70 20 C85 20 95 30 100 40 C105 30 115 20 130 20 C155 20 180 40 180 70 C180 120 100 180 100 180Z" fill="#DC2626" opacity="0.15" stroke="#DC2626" stroke-width="3"/>
+  
+  <!-- Couple silhouette - Man (left) -->
+  <g transform="translate(55, 55)">
+    <!-- Head -->
+    <circle cx="15" cy="15" r="12" fill="#D4A574"/>
+    <!-- Turban/Hair -->
+    <path d="M5 12 Q5 3 15 3 Q25 3 25 12" fill="#B45309" stroke="#92400E" stroke-width="1"/>
+    <!-- Body -->
+    <path d="M3 30 Q3 25 8 25 L22 25 Q27 25 27 30 L27 65 L3 65Z" fill="#D97706"/>
+    <!-- Namaste hands -->
+    <path d="M15 40 L15 55" stroke="#D4A574" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Couple silhouette - Woman (right) -->
+  <g transform="translate(105, 55)">
+    <!-- Head -->
+    <circle cx="15" cy="15" r="12" fill="#D4A574"/>
+    <!-- Hair -->
+    <path d="M3 15 Q3 1 15 1 Q27 1 27 15" fill="#1C1917"/>
+    <!-- Bindi -->
+    <circle cx="15" cy="11" r="1.5" fill="#DC2626"/>
+    <!-- Body (saree) -->
+    <path d="M3 30 Q3 25 8 25 L22 25 Q27 25 27 30 L27 65 L3 65Z" fill="#DC2626"/>
+    <!-- Saree drape -->
+    <path d="M22 30 Q30 45 22 65" stroke="#B91C1C" stroke-width="2" fill="none"/>
+    <!-- Namaste hands -->
+    <path d="M15 40 L15 55" stroke="#D4A574" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Small floating heart -->
+  <path d="M100 50 C100 50 94 45 94 41 C94 38 96.5 36 99 36 C100 36 100.5 37 100 38 C100.5 37 101 36 102 36 C104.5 36 107 38 107 41 C107 45 100 50 100 50Z" fill="#DC2626"/>
+  
+  <!-- Namaste hands detail (shared) -->
+  <g transform="translate(72, 100)">
+    <!-- Left person's hands -->
+    <path d="M12 0 L12 8 M8 4 L16 4" stroke="#D4A574" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(118, 100)">
+    <!-- Right person's hands -->
+    <path d="M12 0 L12 8 M8 4 L16 4" stroke="#D4A574" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="100" y="200" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="18" fill="#1C1917">JORU KA GULAAM</text>
+</svg>

@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "Joru Ka Gulaam 🫡 — Couple's Quiz | Who's the REAL Gulaam?",
   description:
     "India's most viral couple's quiz! Take the Hinglish quiz with your partner, get AI-powered roast verdicts, and share your Gulaam score. 🫡",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "Joru Ka Gulaam 🫡 — Who's the REAL Gulaam?",
     description:
