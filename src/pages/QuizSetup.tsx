@@ -62,7 +62,6 @@ const QuizSetup = () => {
 
   return (
     <div className="min-h-screen bg-cinematic-bg bg-cover bg-center flex items-center justify-center px-4 py-8 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,10,5,0.5)] to-[rgba(20,10,5,0.7)]" />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,35 +69,35 @@ const QuizSetup = () => {
         className="w-full max-w-md relative z-10"
       >
         <h1 className="text-3xl font-heading font-black text-center mb-2">
-          <span className="text-primary text-glow-pink">Quiz Setup</span> 🫡
+          <span className="text-red-600">Quiz Setup</span> 🫡
         </h1>
-        <p className="text-center text-muted-foreground text-sm mb-8 font-body">
+        <p className="text-center text-rose-700/60 text-sm mb-8 font-body">
           Pehle apni details daalo, phir maza aayega
         </p>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-body text-muted-foreground mb-1.5">Your Name</label>
+            <label className="block text-sm font-body text-rose-800/70 mb-1.5">Your Name</label>
             <input
               type="text"
               value={partnerAName}
               onChange={(e) => setPartnerAName(e.target.value)}
               placeholder="Apna naam daalo..."
               maxLength={30}
-              className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:border-glow-pink transition-all"
+              className="w-full bg-white/60 border border-rose-200/60 rounded-lg px-4 py-3 text-rose-900 font-body placeholder:text-rose-400/50 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-200 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-body text-muted-foreground mb-1.5">Your Gender</label>
+            <label className="block text-sm font-body text-rose-800/70 mb-1.5">Your Gender</label>
             <div className="flex gap-2">
               {genderOptions.map((g) => (
                 <button
                   key={g.value}
                   onClick={() => setPartnerAGender(g.value)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-body border transition-all ${partnerAGender === g.value
-                      ? 'bg-primary/20 border-primary text-primary border-glow-pink'
-                      : 'bg-card border-border text-muted-foreground hover:border-muted-foreground/50'
+                    ? 'bg-red-50 border-red-400 text-red-600 font-medium'
+                    : 'bg-white/50 border-rose-200/60 text-rose-700 hover:border-rose-300'
                     }`}
                 >
                   {g.label}
@@ -108,27 +107,27 @@ const QuizSetup = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-body text-muted-foreground mb-1.5">Partner's Name</label>
+            <label className="block text-sm font-body text-rose-800/70 mb-1.5">Partner's Name</label>
             <input
               type="text"
               value={partnerBName}
               onChange={(e) => setPartnerBName(e.target.value)}
               placeholder="Partner ka naam daalo..."
               maxLength={30}
-              className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-secondary focus:border-glow-blue transition-all"
+              className="w-full bg-white/60 border border-rose-200/60 rounded-lg px-4 py-3 text-rose-900 font-body placeholder:text-rose-400/50 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-200 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-body text-muted-foreground mb-1.5">Partner's Gender</label>
+            <label className="block text-sm font-body text-rose-800/70 mb-1.5">Partner's Gender</label>
             <div className="flex gap-2">
               {genderOptions.map((g) => (
                 <button
                   key={g.value}
                   onClick={() => setPartnerBGender(g.value)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-body border transition-all ${partnerBGender === g.value
-                      ? 'bg-secondary/20 border-secondary text-secondary border-glow-blue'
-                      : 'bg-card border-border text-muted-foreground hover:border-muted-foreground/50'
+                    ? 'bg-red-50 border-red-400 text-red-600 font-medium'
+                    : 'bg-white/50 border-rose-200/60 text-rose-700 hover:border-rose-300'
                     }`}
                 >
                   {g.label}
@@ -138,15 +137,15 @@ const QuizSetup = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-body text-muted-foreground mb-1.5">Relationship Status</label>
+            <label className="block text-sm font-body text-rose-800/70 mb-1.5">Relationship Status</label>
             <div className="flex gap-2">
               {statusOptions.map((s) => (
                 <button
                   key={s.value}
                   onClick={() => setRelationshipStatus(s.value as 'dating' | 'married' | 'livein')}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-body border transition-all ${relationshipStatus === s.value
-                      ? 'bg-accent/10 border-accent text-accent'
-                      : 'bg-card border-border text-muted-foreground hover:border-muted-foreground/50'
+                    ? 'bg-red-50 border-red-400 text-red-600 font-medium'
+                    : 'bg-white/50 border-rose-200/60 text-rose-700 hover:border-rose-300'
                     }`}
                 >
                   {s.label}
@@ -161,8 +160,8 @@ const QuizSetup = () => {
             onClick={handleSubmit}
             disabled={!canSubmit}
             className={`w-full py-4 rounded-full font-heading font-bold text-lg transition-all ${canSubmit
-                ? 'bg-primary text-primary-foreground box-glow-pink'
-                : 'bg-muted text-muted-foreground cursor-not-allowed'
+              ? 'bg-red-500 text-white shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:bg-red-600'
+              : 'bg-rose-200 text-rose-400 cursor-not-allowed'
               }`}
           >
             {isLoading ? 'Setting up...' : "Let's Go →"}

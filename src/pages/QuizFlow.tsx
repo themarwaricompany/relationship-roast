@@ -186,7 +186,6 @@ const QuizFlow = () => {
     if (showCategoryTransition && transitionCategory) {
         return (
             <div className="min-h-screen bg-cinematic-bg bg-cover bg-center flex items-center justify-center px-4 relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,10,5,0.6)] to-[rgba(20,10,5,0.8)]" />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -195,7 +194,7 @@ const QuizFlow = () => {
                     className="text-center relative z-10"
                 >
                     <div className="text-6xl mb-4">{transitionCategory.emoji}</div>
-                    <h2 className="text-3xl font-heading font-black text-white">
+                    <h2 className="text-3xl font-heading font-black text-rose-900">
                         {transitionCategory.label}
                     </h2>
                 </motion.div>
@@ -208,26 +207,23 @@ const QuizFlow = () => {
 
     return (
         <div className="min-h-screen bg-cinematic-bg bg-cover bg-center relative flex flex-col">
-            {/* Dark overlay for readability */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,10,5,0.5)] to-[rgba(20,10,5,0.7)]" />
-
             {/* Content */}
             <div className="relative z-10 flex flex-col flex-1 max-w-lg mx-auto w-full px-4 py-6">
                 {/* Top bar: progress + partner label */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-body text-white/75">
+                        <span className="text-sm font-body text-rose-800/70">
                             {partnerName}'s Turn
                         </span>
-                        <span className="text-sm font-body text-white/75">
+                        <span className="text-sm font-body text-rose-800/70">
                             {currentIndex + 1} / {totalQuestions}
                         </span>
                     </div>
 
                     {/* Progress bar */}
-                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-rose-200/50 rounded-full overflow-hidden">
                         <motion.div
-                            className="h-full bg-red-600 rounded-full"
+                            className="h-full bg-red-500 rounded-full"
                             initial={false}
                             animate={{ width: `${progressPercent}%` }}
                             transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -238,7 +234,7 @@ const QuizFlow = () => {
                 {/* Category label */}
                 <div className="flex items-center gap-2 mb-3">
                     <span className="text-lg">{currentQuestion.categoryEmoji}</span>
-                    <span className="text-xs font-heading font-semibold text-white/60 uppercase tracking-wider">
+                    <span className="text-xs font-heading font-semibold text-rose-700/60 uppercase tracking-wider">
                         {currentQuestion.categoryLabel}
                     </span>
                 </div>
@@ -255,13 +251,13 @@ const QuizFlow = () => {
                         className="flex-1 flex flex-col"
                     >
                         {/* Question text */}
-                        <div className="bg-white/[0.08] backdrop-blur-lg border border-white/[0.12] rounded-2xl p-5 mb-5 shadow-lg">
-                            <h2 className="text-xl md:text-2xl font-heading font-bold text-white leading-snug">
+                        <div className="bg-white/60 backdrop-blur-sm border border-rose-200/60 rounded-2xl p-5 mb-5 shadow-sm">
+                            <h2 className="text-xl md:text-2xl font-heading font-bold text-rose-900 leading-snug">
                                 {currentQuestion.questionText}
                             </h2>
                             {isSkipped && (
                                 <div className="mt-2 flex items-center gap-1.5">
-                                    <span className="text-xs font-body text-amber-400/80 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                                    <span className="text-xs font-body text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                                         ⏭ Skipped
                                     </span>
                                 </div>
@@ -281,20 +277,20 @@ const QuizFlow = () => {
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => handleSelectAnswer(optKey)}
                                         className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-center gap-3 ${isSelected
-                                            ? 'bg-red-600/20 border-red-500/60 shadow-[0_0_20px_rgba(220,38,38,0.2)]'
-                                            : 'bg-white/[0.08] border-white/[0.12] hover:bg-white/[0.12] hover:border-white/[0.2]'
+                                                ? 'bg-red-50 border-red-400 shadow-[0_2px_12px_rgba(220,38,38,0.15)]'
+                                                : 'bg-white/50 border-rose-200/60 hover:bg-white/70 hover:border-rose-300/80'
                                             }`}
                                     >
                                         <span
                                             className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-heading font-bold shrink-0 ${isSelected
-                                                ? 'bg-red-600 text-white'
-                                                : 'bg-white/10 text-white/60'
+                                                    ? 'bg-red-500 text-white'
+                                                    : 'bg-rose-100 text-rose-500'
                                                 }`}
                                         >
                                             {optionLabel}
                                         </span>
                                         <span
-                                            className={`font-body text-sm leading-relaxed ${isSelected ? 'text-white' : 'text-white/80'
+                                            className={`font-body text-sm leading-relaxed ${isSelected ? 'text-rose-900 font-medium' : 'text-rose-800/80'
                                                 }`}
                                         >
                                             {optionText}
@@ -314,7 +310,7 @@ const QuizFlow = () => {
                             <motion.button
                                 whileTap={{ scale: 0.92 }}
                                 onClick={goBack}
-                                className="flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl font-body text-sm font-semibold border border-white/15 text-white/70 hover:bg-white/[0.08] hover:border-white/25 active:bg-white/10 transition-all shrink-0"
+                                className="flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl font-body text-sm font-semibold border border-rose-300/60 text-rose-700 bg-white/50 hover:bg-white/70 hover:border-rose-400/70 active:bg-white/80 transition-all shrink-0"
                             >
                                 <ChevronLeft size={16} />
                                 Back
@@ -329,8 +325,8 @@ const QuizFlow = () => {
                                 onClick={handleComplete}
                                 disabled={isSubmitting}
                                 className={`flex-1 py-4 rounded-2xl font-heading font-bold text-base transition-all ${!isSubmitting
-                                    ? 'bg-red-600 text-white shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:bg-red-700'
-                                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                                        ? 'bg-red-500 text-white shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:bg-red-600'
+                                        : 'bg-rose-200 text-rose-400 cursor-not-allowed'
                                     }`}
                             >
                                 {isSubmitting ? 'Submitting...' : 'Submit Answers 🫡'}
@@ -342,21 +338,21 @@ const QuizFlow = () => {
                                 onClick={handleSkip}
                                 disabled={skipsRemaining <= 0 && !isSkipped}
                                 className={`flex-1 py-4 rounded-2xl font-heading font-bold text-base flex items-center justify-center gap-2 transition-all ${isSkipped
-                                        ? 'bg-amber-500/20 border border-amber-400/40 text-amber-400 hover:bg-amber-500/30'
+                                        ? 'bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100'
                                         : skipsRemaining > 0
-                                            ? 'bg-white/10 border border-white/15 text-white/70 hover:bg-white/15 hover:border-white/25'
-                                            : 'bg-white/5 border border-white/5 text-white/20 cursor-not-allowed'
+                                            ? 'bg-white/50 border border-rose-300/60 text-rose-700 hover:bg-white/70 hover:border-rose-400/70'
+                                            : 'bg-rose-50/50 border border-rose-200/40 text-rose-300 cursor-not-allowed'
                                     }`}
                             >
                                 <SkipForward size={18} />
                                 {isSkipped ? 'Unskip' : 'Skip'}
                                 {!isSkipped && skipsRemaining > 0 && (
-                                    <span className="ml-1 text-xs tabular-nums bg-white/10 px-2 py-0.5 rounded-lg text-white/50">
+                                    <span className="ml-1 text-xs tabular-nums bg-rose-100 px-2 py-0.5 rounded-lg text-rose-500">
                                         {skipsRemaining} left
                                     </span>
                                 )}
                                 {!isSkipped && skipsRemaining <= 0 && (
-                                    <span className="ml-1 text-xs text-white/30">
+                                    <span className="ml-1 text-xs text-rose-300">
                                         No skips left
                                     </span>
                                 )}
