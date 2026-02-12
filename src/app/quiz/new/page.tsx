@@ -23,7 +23,7 @@ export default function QuizSetup() {
     const [relationshipStatus, setRelationshipStatus] = useState<RelationshipStatus | "">("");
     const [college, setCollege] = useState("");
     const [otherCollege, setOtherCollege] = useState("");
-    const [photo, setPhoto] = useState<File | null>(null);
+
 
     const canSubmit =
         yourName.trim() &&
@@ -42,17 +42,6 @@ export default function QuizSetup() {
         await activateSounds();
 
         try {
-            // Upload photo if provided
-            let photoUrl = null;
-            if (photo) {
-                const formData = new FormData();
-                formData.append("file", photo);
-                const uploadRes = await fetch("/api/upload-photo", { method: "POST", body: formData });
-                if (uploadRes.ok) {
-                    const uploadData = await uploadRes.json();
-                    photoUrl = uploadData.url;
-                }
-            }
 
             // Create session
             const res = await fetch("/api/quiz/create", {
@@ -65,7 +54,7 @@ export default function QuizSetup() {
                     partnerBGender: partnerGender,
                     relationshipStatus,
                     college: college === "Other" ? otherCollege.trim() : college,
-                    photoUrl,
+
                 }),
             });
 
@@ -230,37 +219,7 @@ export default function QuizSetup() {
                                     )}
                                 </div>
 
-                                {/* Photo upload */}
-                                <div>
-                                    <label className="text-xs text-text-muted mb-1.5 block font-medium">
-                                        Couple Photo (optional)
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file && file.size <= 5 * 1024 * 1024) {
-                                                    setPhoto(file);
-                                                } else if (file) {
-                                                    setError("Photo 5MB se choti honi chahiye");
-                                                }
-                                            }}
-                                            className="hidden"
-                                            id="photo-upload"
-                                        />
-                                        <label
-                                            htmlFor="photo-upload"
-                                            className={`${inputClass} cursor-pointer flex items-center gap-2 text-text-muted`}
-                                        >
-                                            <span>📸</span>
-                                            <span className="text-sm">
-                                                {photo ? photo.name : "Photo upload karo"}
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
+
 
                                 {/* Error */}
                                 {error && (

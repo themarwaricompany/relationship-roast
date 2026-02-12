@@ -111,6 +111,18 @@ export default function ShareSection({
             transition={{ delay: 0.3 }}
             className="space-y-3"
         >
+            {/* Scorecard image preview */}
+            {scorecardImageUrl && (
+                <div className="rounded-xl overflow-hidden border border-white/[0.12] mb-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={scorecardImageUrl}
+                        alt="Your scorecard"
+                        className="w-full"
+                    />
+                </div>
+            )}
+
             {/* Primary: Native Share (mobile) */}
             {supportsNativeShare && (
                 <Button variant="primary" fullWidth onClick={handleNativeShare} loading={sharing}>

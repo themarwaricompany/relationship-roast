@@ -9,6 +9,7 @@ import GlassCard from "@/components/ui/GlassCard";
 import ScoreReveal from "@/components/result/ScoreReveal";
 import CategoryVerdict from "@/components/result/CategoryVerdict";
 import ShareSection from "@/components/result/ShareSection";
+import ScorecardGenerator from "@/components/result/ScorecardGenerator";
 import LeaderboardOptIn from "@/components/result/LeaderboardOptIn";
 import { CATEGORY_ORDER } from "@/lib/constants";
 import { playSound } from "@/lib/sounds";
@@ -23,6 +24,7 @@ export default function ResultPage() {
     const [showVerdicts, setShowVerdicts] = useState(false);
     const [showOverall, setShowOverall] = useState(false);
     const [showShare, setShowShare] = useState(false);
+    const [scorecardUrl, setScorecardUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchResult = async () => {
@@ -170,6 +172,15 @@ export default function ResultPage() {
                             </motion.div>
                         )}
 
+                        {/* Scorecard Generator */}
+                        {showShare && (
+                            <ScorecardGenerator
+                                sessionId={sessionId}
+                                onScorecardGenerated={(url) => setScorecardUrl(url)}
+                                existingScorecardUrl={session.scorecard_image_url}
+                            />
+                        )}
+
                         {/* Share Section */}
                         {showShare && (
                             <>
@@ -181,7 +192,7 @@ export default function ResultPage() {
                                     scoreB={result.partner_b_score}
                                     titleA={result.partner_a_title}
                                     titleB={result.partner_b_title}
-                                    scorecardImageUrl={session.scorecard_image_url}
+                                    scorecardImageUrl={scorecardUrl || session.scorecard_image_url}
                                 />
 
                                 <LeaderboardOptIn
