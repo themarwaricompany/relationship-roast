@@ -177,7 +177,7 @@ export default function ResultPage() {
                             <ScorecardGenerator
                                 sessionId={sessionId}
                                 onScorecardGenerated={(url) => setScorecardUrl(url)}
-                                existingScorecardUrl={session.scorecard_image_url}
+                                existingScorecardUrl={null}
                             />
                         )}
 

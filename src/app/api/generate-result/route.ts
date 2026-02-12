@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { generateResults } from "@/lib/ai/generateResults";
-import { generateScorecard } from "@/lib/ai/generateScorecard";
 
 export async function POST(request: Request) {
     try {
@@ -36,20 +35,11 @@ export async function POST(request: Request) {
         // Generate AI verdict
         const aiResult = await generateResults(session);
 
-        // Attempt scorecard image generation (non-blocking)
-        let scorecardUrl = null;
-        try {
-            scorecardUrl = await generateScorecard(session, aiResult);
-        } catch (imgErr) {
-            console.error("Scorecard generation failed (continuing):", imgErr);
-        }
-
-        // Save result
+        // Save result (scorecard will be generated later by user request)
         const { error: updateErr } = await supabase
             .from("quiz_sessions")
             .update({
                 ai_result: aiResult,
-                scorecard_image_url: scorecardUrl,
                 status: "complete",
                 completed_at: new Date().toISOString(),
             })

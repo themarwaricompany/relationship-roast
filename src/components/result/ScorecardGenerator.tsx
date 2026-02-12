@@ -21,6 +21,7 @@ export default function ScorecardGenerator({
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [scorecardUrl, setScorecardUrl] = useState<string | null>(existingScorecardUrl);
     const [error, setError] = useState("");
+    const [showPhotoPrompt, setShowPhotoPrompt] = useState(true);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +117,10 @@ export default function ScorecardGenerator({
                         Scorecard Banao
                     </h3>
                     <p className="text-xs text-text-muted">
-                        K-Drama style mein apna scorecard generate karo — share karo socials pe! ✨
+                        {showPhotoPrompt 
+                            ? "Apni photo upload karo ya K-Drama style sketch banao ✨"
+                            : "K-Drama style mein apna scorecard generate karo — share karo socials pe! ✨"
+                        }
                     </p>
 
                     <AnimatePresence mode="wait">
@@ -152,10 +156,59 @@ export default function ScorecardGenerator({
                                             setScorecardUrl(null);
                                             setPhoto(null);
                                             setPhotoPreview(null);
+                                            setShowPhotoPrompt(true);
                                         }}
                                     >
                                         Regenerate 🔄
                                     </Button>
+                                </div>
+                                
+                                {/* Social Share Buttons */}
+                                <div className="space-y-2 pt-2 border-t border-white/[0.08]">
+                                    <p className="text-xs text-text-muted text-center mb-2">
+                                        Share karo apne friends ke saath! 🎉
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                            variant="primary"
+                                            fullWidth
+                                            onClick={() => {
+                                                window.open(`https://www.instagram.com/create/story`, '_blank');
+                                            }}
+                                        >
+                                            📸 Instagram
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            fullWidth
+                                            onClick={() => {
+                                                window.open(`https://www.snapchat.com/`, '_blank');
+                                            }}
+                                        >
+                                            👻 Snapchat
+                                        </Button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                            variant="whatsapp"
+                                            fullWidth
+                                            onClick={() => {
+                                                const text = `Check out our Joru Ka Gulaam Award! 🏆`;
+                                                window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + scorecardUrl)}`, '_blank');
+                                            }}
+                                        >
+                                            📲 WhatsApp
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            fullWidth
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(scorecardUrl || '');
+                                            }}
+                                        >
+                                            🔗 Copy Link
+                                        </Button>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
@@ -190,65 +243,136 @@ export default function ScorecardGenerator({
                                 exit={{ opacity: 0 }}
                                 className="space-y-3"
                             >
-                                {/* Photo upload area */}
-                                <div className="space-y-2">
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onChange={handlePhotoSelect}
-                                        className="hidden"
-                                    />
-
-                                    {photoPreview ? (
-                                        <div className="relative">
-                                            <div className="rounded-xl overflow-hidden border border-gold/30">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
-                                                    src={photoPreview}
-                                                    alt="Selected photo"
-                                                    className="w-full max-h-48 object-cover"
-                                                />
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    setPhoto(null);
-                                                    setPhotoPreview(null);
-                                                    if (fileInputRef.current)
-                                                        fileInputRef.current.value = "";
+                                {showPhotoPrompt ? (
+                                    <>
+                                        {/* Photo upload prompt - shown first */}
+                                        <div className="space-y-3">\
+                                            <p className="text-sm text-white font-medium">
+                                                📸 Couple ki photo upload karoge?
+                                            </p>
+                                            <p className="text-xs text-text-muted">
+                                                Apni exact features ke saath romantic illustration banaenge
+                                            </p>
+                                            
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                onChange={(e) => {
+                                                    handlePhotoSelect(e);
+                                                    if (e.target.files?.[0]) {
+                                                        setShowPhotoPrompt(false);
+                                                    }
                                                 }}
-                                                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-xs flex items-center justify-center"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-full py-4 rounded-xl border-2 border-dashed border-white/[0.15] text-text-muted hover:border-gold/40 hover:text-gold transition-all text-sm"
-                                        >
-                                            📸 Couple photo upload karo (optional)
-                                        </button>
-                                    )}
-                                </div>
+                                                className="hidden"
+                                            />
 
-                                {/* Generate buttons */}
-                                {photo ? (
-                                    <Button
-                                        variant="primary"
-                                        fullWidth
-                                        onClick={() => handleGenerate(true)}
-                                    >
-                                        Photo ke saath Generate ✨
-                                    </Button>
+                                            {photoPreview ? (
+                                                <div className="relative">
+                                                    <div className="rounded-xl overflow-hidden border border-gold/30">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={photoPreview}
+                                                            alt="Selected photo"
+                                                            className="w-full max-h-48 object-cover"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setPhoto(null);
+                                                            setPhotoPreview(null);
+                                                            setShowPhotoPrompt(true);
+                                                            if (fileInputRef.current)
+                                                                fileInputRef.current.value = "";
+                                                        }}
+                                                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-xs flex items-center justify-center"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ) : null}
+
+                                            <div className="space-y-2">
+                                                <Button
+                                                    variant="primary"
+                                                    fullWidth
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                >
+                                                    📸 Haan, Photo Upload Karo
+                                                </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    fullWidth
+                                                    onClick={() => setShowPhotoPrompt(false)}
+                                                >
+                                                    Skip — K-Drama Sketch Banao 🎬
+                                                </Button>
+                                            </div>
+
+                                            <p className="text-xs text-text-muted italic">
+                                                Photo se tumhare exact hairstyle, glasses, aur features preserve honge ✨
+                                            </p>
+                                        </div>
+                                    </>
                                 ) : (
-                                    <Button
-                                        variant="primary"
-                                        fullWidth
-                                        onClick={() => handleGenerate(false)}
-                                    >
-                                        Scorecard Generate Karo 🎬
-                                    </Button>
+                                    <>
+                                        {/* Photo already uploaded or skipped to K-Drama */}
+                                        {photo && photoPreview ? (
+                                            <div className="space-y-3">
+                                                <div className="relative">
+                                                    <div className="rounded-xl overflow-hidden border border-gold/30">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={photoPreview}
+                                                            alt="Selected photo"
+                                                            className="w-full max-h-48 object-cover"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setPhoto(null);
+                                                            setPhotoPreview(null);
+                                                            setShowPhotoPrompt(true);
+                                                            if (fileInputRef.current)
+                                                                fileInputRef.current.value = "";
+                                                        }}
+                                                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white text-xs flex items-center justify-center"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                                <Button
+                                                    variant="primary"
+                                                    fullWidth
+                                                    onClick={() => handleGenerate(true)}
+                                                >
+                                                    Photo ke saath Generate ✨
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                <p className="text-sm text-white font-medium">
+                                                    🎬 K-Drama Style Scorecard
+                                                </p>
+                                                <p className="text-xs text-text-muted">
+                                                    Romantic Korean drama style mein beautiful couple portrait banaenge
+                                                </p>
+                                                <Button
+                                                    variant="primary"
+                                                    fullWidth
+                                                    onClick={() => handleGenerate(false)}
+                                                >
+                                                    K-Drama Scorecard Banao 🎬
+                                                </Button>
+                                                <button
+                                                    onClick={() => setShowPhotoPrompt(true)}
+                                                    className="text-xs text-text-muted hover:text-gold transition-colors underline"
+                                                >
+                                                    ← Wapas jao (Photo upload karo)
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </motion.div>
                         )}

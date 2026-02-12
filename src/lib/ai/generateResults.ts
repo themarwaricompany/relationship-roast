@@ -34,8 +34,8 @@ export async function generateResults(session: QuizSession): Promise<AIResult> {
     const prompt = `You are a hilarious Hinglish roast-master for the "Joru Ka Gulaam" couple's quiz. Your job is to roast this couple based on their quiz answers. The roast should be FUNNY, culturally Indian, Hinglish (mix of Hindi + English), and relationship-savvy. NOT mean-spirited — it should make both partners laugh.
 
 ## Context:
-- ${session.partner_a_name} (${session.partner_a_gender}) scored ${scoreA}/100 → Title: "${titleA}"
-- ${session.partner_b_name} (${session.partner_b_gender}) scored ${scoreB}/100 → Title: "${titleB}"
+- ${session.partner_a_name} (${session.partner_a_gender}) scored ${scoreA}/100
+- ${session.partner_b_name} (${session.partner_b_gender}) scored ${scoreB}/100
 - Relationship status: ${session.relationship_status}
 - Higher score = more "gulaam" (whipped)
 
@@ -47,8 +47,8 @@ Generate a JSON response in this EXACT format:
 {
   "partner_a_score": ${scoreA},
   "partner_b_score": ${scoreB},
-  "partner_a_title": "${titleA}",
-  "partner_b_title": "${titleB}",
+  "partner_a_title": "<QUIRKY FUN COUPLE AWARD TITLE for ${session.partner_a_name} - examples: 'Toofani Couple Half', 'The Silent Boss', 'Netflix & Chill Champion', 'Breakfast in Bed Expert', 'Midnight Snack Partner', 'Adventure Buddy Supreme', 'Professional Hugger', etc. Make it FUN, SHAREABLE, and COUPLE-FOCUSED (not about being whipped)>",
+  "partner_b_title": "<QUIRKY FUN COUPLE AWARD TITLE for ${session.partner_b_name} - examples: 'Toofani Couple Half', 'The Silent Boss', 'Netflix & Chill Champion', 'Breakfast in Bed Expert', 'Midnight Snack Partner', 'Adventure Buddy Supreme', 'Professional Hugger', etc. Make it FUN, SHAREABLE, and COUPLE-FOCUSED (not about being whipped)>",
   "tagline": "<One-liner roast summarizing this couple in Hinglish, max 15 words>",
   "overall_verdict": "<3-4 sentence overall Hinglish roast of this couple's dynamic. Make it cinematic and dramatic.>",
   "category_verdicts": {
@@ -64,11 +64,20 @@ Generate a JSON response in this EXACT format:
   ]
 }
 
+CRITICAL AWARD TITLE GUIDELINES:
+- Titles should be POSITIVE, QUIRKY, and FUN - NOT about scores or being "gulaam"
+- Focus on couple dynamics, shared activities, personality traits
+- Make them SHAREABLE - couples should be PROUD to share these titles!
+- Examples: "Toofani Couple", "Adventure Junkies", "Lazy Sunday Champions", "Foodie Partners", "Late Night Philosophers", "Comedy Show Duo", "Road Trip Legends", "Sunrise Watchers", "Chai Pe Charcha Couple"
+- Keep them short (2-5 words), memorable, and Instagram-worthy
+- Avoid negative connotations - make couples feel SPECIAL and HAPPY
+
 IMPORTANT:
 - Use Hinglish naturally (Hindi words in Roman script mixed with English)
 - Be witty, not vulgar
 - Reference specific answers they gave for funnier roasts
 - The tagline should be quotable/shareable
+- THE AWARD TITLES ARE THE MOST IMPORTANT - make them creative, fun, and share-worthy!
 - Return ONLY the JSON, no markdown or explanation`;
 
     try {

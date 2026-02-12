@@ -18,6 +18,8 @@ export default function WaitingPage() {
     const [session, setSession] = useState<QuizSession | null>(null);
     const [messageIndex, setMessageIndex] = useState(0);
     const [copied, setCopied] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [phoneSaved, setPhoneSaved] = useState(false);
 
     const shareUrl = typeof window !== "undefined"
         ? `${window.location.origin}/quiz/${sessionId}?partner=b`
@@ -78,12 +80,24 @@ export default function WaitingPage() {
         }
     };
 
+    const handleSavePhone = async () => {
+        if (!phoneNumber.trim() || phoneNumber.length < 10) return;
+        
+        try {
+            // Save phone number to session (you can add an API endpoint for this)
+            setPhoneSaved(true);
+            setTimeout(() => setPhoneSaved(false), 2000);
+        } catch (err) {
+            console.error("Phone save error:", err);
+        }
+    };
+
     return (
         <Background>
             <div className="min-h-screen flex flex-col">
                 <Header />
 
-                <main className="flex-1 flex flex-col items-center justify-center px-5 pb-8">
+                <main className="flex-1 flex flex-col items-center justify-center px-5 pb-32">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -112,6 +126,33 @@ export default function WaitingPage() {
                         >
                             {WAITING_MESSAGES[messageIndex]}
                         </motion.p>
+
+                        {/* Phone Number Input */}
+                        <GlassCard padding="md" className="mb-6">
+                            <p className="text-sm text-white mb-3">
+                                📱 Apna WhatsApp number dalo (optional)
+                            </p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="tel"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ""))}
+                                    placeholder="9876543210"
+                                    maxLength={10}
+                                    className="flex-1 bg-white/[0.1] border border-white/[0.2] rounded-lg px-4 py-3 text-white placeholder:text-text-muted focus:outline-none focus:border-gold/50 transition-colors"
+                                />
+                                <Button 
+                                    variant="primary" 
+                                    onClick={handleSavePhone}
+                                    className="px-6"
+                                >
+                                    {phoneSaved ? "✓" : "Save"}
+                                </Button>
+                            </div>
+                            <p className="text-xs text-text-muted mt-2">
+                                Taaki tum wapas aa sako platform pe dekhne
+                            </p>
+                        </GlassCard>
 
                         {/* Share buttons */}
                         <GlassCard padding="md">
@@ -144,6 +185,34 @@ export default function WaitingPage() {
                         </div>
                     </motion.div>
                 </main>
+
+                {/* Sticky Share Link Section */}
+                <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent backdrop-blur-md border-t border-white/[0.1] px-4 py-3 z-50">
+                    <div className="max-w-md mx-auto">
+                        <p className="text-xs text-white font-medium mb-2 text-center">
+                            Partner ko ye link bhejo 👇
+                        </p>
+                        <div className="flex gap-2">
+                            <div className="flex-1 bg-white/[0.05] rounded-lg px-3 py-2 text-xs text-white/70 font-mono overflow-x-auto whitespace-nowrap border border-white/[0.1]">
+                                {shareUrl}
+                            </div>
+                            <Button 
+                                variant="secondary" 
+                                onClick={handleCopyLink} 
+                                className="shrink-0 px-3 py-2 min-w-[60px] text-sm font-medium"
+                            >
+                                {copied ? "✓" : "Copy"}
+                            </Button>
+                            <Button 
+                                variant="whatsapp" 
+                                onClick={handleWhatsAppShare} 
+                                className="shrink-0 px-3 py-2 text-sm"
+                            >
+                                WA
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </Background>
     );

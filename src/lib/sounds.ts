@@ -6,7 +6,8 @@ type SoundName =
     | 'drumroll'
     | 'scoreReveal'
     | 'verdictAppear'
-    | 'shareUnlock';
+    | 'shareUnlock'
+    | 'tick';
 
 interface SoundConfig {
     src: string[];
@@ -22,6 +23,7 @@ const SOUND_CONFIG: Record<SoundName, SoundConfig> = {
     scoreReveal: { src: ['/sounds/reveal.webm', '/sounds/reveal.mp3'], volume: 0.6 },
     verdictAppear: { src: ['/sounds/verdict.webm', '/sounds/verdict.mp3'], volume: 0.3 },
     shareUnlock: { src: ['/sounds/share.webm', '/sounds/share.mp3'], volume: 0.4 },
+    tick: { src: ['/sounds/tick.webm', '/sounds/tick.mp3'], volume: 0.3 },
 };
 
 let muted = false;

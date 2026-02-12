@@ -73,7 +73,7 @@ export default function QuizPage() {
     const handleAnswer = useCallback(
         async (optionKey: OptionKey) => {
             await activateSounds();
-            playSound("tap");
+            playSound("tick");
 
             const option = currentQuestion.options[optionKey];
             const newAnswers = { ...answers, [currentQuestion.id]: optionKey };

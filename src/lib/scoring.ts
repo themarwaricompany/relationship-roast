@@ -39,10 +39,16 @@ export function calculateRawScores(answers: Record<number, OptionKey>): ScoreRes
 }
 
 /**
- * Normalize raw score to 0-100 scale
+ * Normalize raw score to 0-100 scale with positive bias
  */
 export function normalizeScore(rawScore: number): number {
-    return Math.round((rawScore / MAX_RAW_SCORE) * 100);
+    // Apply positive bias: boost scores slightly to make them look better
+    // Formula: add 10% bonus, then cap at 100
+    const baseScore = (rawScore / MAX_RAW_SCORE) * 100;
+    const biasedScore = baseScore + (baseScore * 0.10); // 10% boost
+    
+    // Ensure score never exceeds 100
+    return Math.min(100, Math.round(biasedScore));
 }
 
 /**

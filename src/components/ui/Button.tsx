@@ -16,8 +16,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         const variants = {
             primary: "bg-red text-white hover:bg-red-hover shadow-[0_4px_20px_rgba(220,38,38,0.3)] hover:shadow-[0_4px_28px_rgba(220,38,38,0.5)]",
-            secondary: "bg-white/[0.07] backdrop-blur-md border border-white/[0.12] text-white hover:bg-white/[0.12]",
-            ghost: "text-text-muted hover:text-white hover:bg-white/[0.05]",
+            secondary: "bg-white/[0.08] backdrop-blur-md border border-white/[0.15] text-white hover:bg-white/[0.14]",
+            ghost: "bg-white/[0.06] border border-white/[0.1] text-white/90 hover:text-white hover:bg-white/[0.1]",
             whatsapp: "bg-[#25D366] text-white hover:bg-[#20BD5A] shadow-[0_4px_20px_rgba(37,211,102,0.3)]",
         };
 

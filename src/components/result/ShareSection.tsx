@@ -123,38 +123,70 @@ export default function ShareSection({
                 </div>
             )}
 
+            {/* Instagram Story Share */}
+            <Button 
+                variant="primary" 
+                fullWidth 
+                onClick={() => {
+                    if (scorecardImageUrl) {
+                        window.open(`https://www.instagram.com/create/story`, '_blank');
+                    } else {
+                        window.open(`https://www.instagram.com/`, '_blank');
+                    }
+                }}
+            >
+                📸 Share on Instagram
+            </Button>
+
+            {/* Snapchat Share */}
+            <Button 
+                variant="secondary" 
+                fullWidth 
+                onClick={() => {
+                    window.open(`https://www.snapchat.com/`, '_blank');
+                }}
+            >
+                👻 Share on Snapchat
+            </Button>
+
+            {/* WhatsApp */}
+            <Button variant="whatsapp" fullWidth onClick={handleWhatsApp}>
+                📲 Share on WhatsApp
+            </Button>
+
             {/* Primary: Native Share (mobile) */}
             {supportsNativeShare && (
-                <Button variant="primary" fullWidth onClick={handleNativeShare} loading={sharing}>
-                    Share 📤
+                <Button variant="ghost" fullWidth onClick={handleNativeShare} loading={sharing}>
+                    Share More 📤
                 </Button>
             )}
 
             {/* Download card */}
             {scorecardImageUrl && (
-                <Button variant="secondary" fullWidth onClick={handleDownload}>
+                <Button variant="ghost" fullWidth onClick={handleDownload}>
                     Download Card 📥
                 </Button>
             )}
 
-            {/* WhatsApp */}
-            <Button variant="whatsapp" fullWidth onClick={handleWhatsApp}>
-                Share on WhatsApp 📲
-            </Button>
-
             {/* Copy Link */}
-            <Button variant="secondary" fullWidth onClick={handleCopyLink}>
+            <Button variant="ghost" fullWidth onClick={handleCopyLink}>
                 {copied ? "Copied! ✅" : "Copy Link 🔗"}
             </Button>
 
-            {/* Challenge another couple */}
-            <Button
-                variant="ghost"
-                fullWidth
-                onClick={() => (window.location.href = "/quiz/new")}
-            >
-                Challenge Another Couple 🫡
-            </Button>
+            {/* Challenge another couple - HIGHLIGHTED */}
+            <div className="pt-3 border-t border-white/[0.12]">
+                <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => (window.location.href = "/quiz/new")}
+                    className="!bg-gradient-to-r !from-red-600 !to-pink-600 !text-white font-bold text-lg py-4 shadow-lg shadow-red-500/50 hover:shadow-xl hover:shadow-red-500/60 transition-all"
+                >
+                    🎯 Challenge Another Couple!
+                </Button>
+                <p className="text-xs text-center text-text-muted mt-2">
+                    Apne friends ko bhi test karo! 😏
+                </p>
+            </div>
         </motion.div>
     );
 }
