@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Question, OptionKey, RelationshipStatus } from "@/types";
 import OptionButton from "./OptionButton";
@@ -22,6 +22,11 @@ export default function QuestionCard({
     totalQuestions,
 }: QuestionCardProps) {
     const [selected, setSelected] = useState<OptionKey | null>(null);
+
+    // Reset selected state when question changes
+    useEffect(() => {
+        setSelected(null);
+    }, [question.id]);
 
     const questionText = question.text[relationshipStatus];
     const options = Object.entries(question.options) as [OptionKey, typeof question.options.a][];

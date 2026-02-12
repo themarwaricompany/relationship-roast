@@ -36,10 +36,12 @@ export async function POST(request: Request) {
         if (isPartnerA) {
             updateData.partner_a_answers = answers;
             updateData.partner_a_score = normalizedSelf;
-            updateData.status = "waiting_for_b";
+            updateData.partner_a_completed_at = new Date().toISOString();
+            updateData.status = "waiting_for_partner_b";
         } else {
             updateData.partner_b_answers = answers;
             updateData.partner_b_score = normalizedSelf;
+            updateData.partner_b_completed_at = new Date().toISOString();
             updateData.status = "generating";
         }
 
