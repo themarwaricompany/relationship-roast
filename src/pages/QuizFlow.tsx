@@ -1,336 +1,372 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useQuizStore } from '@/lib/quizStore';
 import { getQuestionsForStatus, categoryInfo, calculateScores } from '@/data/questions';
 import { submitPartnerAnswers } from '@/lib/quizApi';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Undo2, SkipForward } from 'lucide-react';
-
-const optionLabels = ['A', 'B', 'C', 'D'] as const;
-const optionKeys = ['a', 'b', 'c', 'd'] as const;
+import { ChevronLeft, SkipForward } from 'lucide-react';
 
 const QuizFlow = () => {
-  const navigate = useNavigate();
-  const store = useQuizStore();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1); // 1 = forward, -1 = backward
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+    const store = useQuizStore();
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [direction, setDirection] = useState(0); // -1 for back, 1 for forward
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCategoryTransition, setShowCategoryTransition] = useState(false);
+    const [transitionCategory, setTransitionCategory] = useState<{ label: string; emoji: string } | null>(null);
+    const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const questions = useMemo(
-    () => getQuestionsForStatus(store.relationshipStatus),
-    [store.relationshipStatus]
-  );
-
-  if (!store.partnerAName || !store.sessionId) {
-    navigate('/quiz/new');
-    return null;
-  }
-
-  const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-  const isPartnerA = store.currentPartner === 'a';
-  const currentName = isPartnerA ? store.partnerAName : store.partnerBName;
-  const currentAnswers = isPartnerA ? store.partnerAAnswers : store.partnerBAnswers;
-
-  const currentAnswer = currentAnswers[currentQuestion.id] ?? null;
-  const isSkipped = store.skippedQuestions.includes(currentQuestion.id);
-  const isAnswered = currentAnswer !== null;
-  const canGoBack = currentIndex > 0;
-  const canGoForward = currentIndex < questions.length - 1;
-  const isLastQuestion = currentIndex === questions.length - 1;
-
-  const prevCategory = currentIndex > 0 ? questions[currentIndex - 1].category : null;
-  const showCategoryHeader = currentQuestion.category !== prevCategory;
-
-  // Check if all questions are either answered or skipped
-  const allComplete = useMemo(() => {
-    return questions.every(
-      (q) => currentAnswers[q.id] !== undefined || store.skippedQuestions.includes(q.id)
+    // Get questions based on relationship status
+    const questions = useMemo(
+        () => getQuestionsForStatus(store.relationshipStatus),
+        [store.relationshipStatus]
     );
-  }, [questions, currentAnswers, store.skippedQuestions]);
 
-  const handleSelect = useCallback(
-    (option: string) => {
-      store.setAnswer(currentQuestion.id, option);
-    },
-    [store, currentQuestion.id]
-  );
+    const totalQuestions = questions.length;
+    const currentQuestion = questions[currentIndex];
 
-  const handleNext = useCallback(() => {
-    if (canGoForward) {
-      setDirection(1);
-      setCurrentIndex((prev) => prev + 1);
-    }
-  }, [canGoForward]);
+    // Get the current partner's answers
+    const currentAnswers = store.currentPartner === 'a' ? store.partnerAAnswers : store.partnerBAnswers;
+    const selectedAnswer = currentQuestion ? currentAnswers[currentQuestion.id] : undefined;
+    const isSkipped = currentQuestion ? store.isQuestionSkipped(currentQuestion.id) : false;
+    const skipsRemaining = store.getSkipsRemaining();
 
-  const handleBack = useCallback(() => {
-    if (canGoBack) {
-      setDirection(-1);
-      setCurrentIndex((prev) => prev - 1);
-    }
-  }, [canGoBack]);
-
-  const handleUndo = useCallback(() => {
-    if (isAnswered) {
-      store.removeAnswer(currentQuestion.id);
-    }
-  }, [isAnswered, store, currentQuestion.id]);
-
-  const handleSkip = useCallback(() => {
-    if (store.skipsRemaining <= 0) {
-      toast.error('Skip limit reached! Bas 2 baar skip kar sakte ho 😏');
-      return;
-    }
-    store.useSkip(currentQuestion.id);
-    // Auto-advance if possible
-    if (canGoForward) {
-      setDirection(1);
-      setCurrentIndex((prev) => prev + 1);
-    }
-  }, [store, currentQuestion.id, canGoForward]);
-
-  const handleFinish = useCallback(async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-
-    try {
-      // Filter out skipped questions from scoring
-      const answeredOnly: Record<string, string> = {};
-      for (const [qId, ans] of Object.entries(currentAnswers)) {
-        if (!store.skippedQuestions.includes(qId)) {
-          answeredOnly[qId] = ans;
+    // Redirect if not in quiz state
+    useEffect(() => {
+        if (store.status !== 'partner_a_quiz' && store.status !== 'partner_b_quiz') {
+            navigate('/');
         }
-      }
+    }, [store.status, navigate]);
 
-      const score = calculateScores(answeredOnly, store.currentPartner);
+    // Cleanup auto-advance timer on unmount
+    useEffect(() => {
+        return () => {
+            if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+        };
+    }, []);
 
-      await submitPartnerAnswers(store.sessionId!, store.currentPartner, answeredOnly, score);
+    // Check for category transition when moving forward
+    const checkCategoryTransition = useCallback(
+        (fromIndex: number, toIndex: number) => {
+            if (toIndex >= totalQuestions || toIndex < 0) return false;
+            if (fromIndex < 0 || fromIndex >= totalQuestions) return false;
+            const fromCat = questions[fromIndex].category;
+            const toCat = questions[toIndex].category;
+            if (fromCat !== toCat) {
+                const catInfo = categoryInfo[toCat];
+                setTransitionCategory({ label: catInfo.label, emoji: catInfo.emoji });
+                setShowCategoryTransition(true);
+                setTimeout(() => {
+                    setShowCategoryTransition(false);
+                    setTransitionCategory(null);
+                }, 1200);
+                return true;
+            }
+            return false;
+        },
+        [questions, totalQuestions]
+    );
 
-      if (isPartnerA) {
-        store.completePartnerA();
-        navigate('/quiz/waiting');
-      } else {
-        store.completePartnerB();
-        navigate('/results');
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to save answers, please try again');
-    } finally {
-      setIsSubmitting(false);
+    // Navigate to next question
+    const goNext = useCallback(() => {
+        if (currentIndex < totalQuestions - 1) {
+            setDirection(1);
+            const nextIndex = currentIndex + 1;
+            checkCategoryTransition(currentIndex, nextIndex);
+            setCurrentIndex(nextIndex);
+        }
+    }, [currentIndex, totalQuestions, checkCategoryTransition]);
+
+    // Navigate to previous question
+    const goBack = useCallback(() => {
+        if (currentIndex > 0) {
+            setDirection(-1);
+            const prevIndex = currentIndex - 1;
+            checkCategoryTransition(currentIndex, prevIndex);
+            setCurrentIndex(prevIndex);
+        }
+    }, [currentIndex, checkCategoryTransition]);
+
+    // Handle answer selection — auto-advances after a brief delay
+    const handleSelectAnswer = useCallback(
+        (optionKey: string) => {
+            if (!currentQuestion) return;
+            store.setAnswer(currentQuestion.id, optionKey);
+
+            // Clear any existing auto-advance timer
+            if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
+
+            // Auto-advance to next question after 800ms
+            if (currentIndex < totalQuestions - 1) {
+                autoAdvanceTimer.current = setTimeout(() => {
+                    goNext();
+                }, 800);
+            }
+        },
+        [currentQuestion, store, currentIndex, totalQuestions, goNext]
+    );
+
+    // Skip current question
+    const handleSkip = useCallback(() => {
+        if (!currentQuestion) return;
+        if (isSkipped) {
+            // Already skipped — unskip and let them answer
+            store.unskipQuestion(currentQuestion.id);
+            return;
+        }
+        const success = store.skipQuestion(currentQuestion.id);
+        if (!success) {
+            toast.error('No skips left! 😅 Sab questions answer karo!');
+            return;
+        }
+        toast.success(`Skipped! ${store.getSkipsRemaining()} skip${store.getSkipsRemaining() === 1 ? '' : 's'} baaki hai`);
+        // Auto-advance to next question
+        if (currentIndex < totalQuestions - 1) {
+            setDirection(1);
+            const nextIndex = currentIndex + 1;
+            checkCategoryTransition(currentIndex, nextIndex);
+            setCurrentIndex(nextIndex);
+        }
+    }, [currentQuestion, isSkipped, store, currentIndex, totalQuestions, checkCategoryTransition]);
+
+    // Check if quiz can be submitted
+    const canSubmit = useMemo(() => {
+        // All non-skipped questions must be answered
+        return questions.every(
+            (q) => currentAnswers[q.id] !== undefined || store.isQuestionSkipped(q.id)
+        );
+    }, [questions, currentAnswers, store]);
+
+    // Handle quiz completion / submit
+    const handleComplete = useCallback(async () => {
+        if (!canSubmit || isSubmitting) return;
+        setIsSubmitting(true);
+
+        try {
+            const score = calculateScores(currentAnswers, store.currentPartner);
+
+            if (store.sessionId) {
+                await submitPartnerAnswers(
+                    store.sessionId,
+                    store.currentPartner,
+                    currentAnswers,
+                    score
+                );
+            }
+
+            if (store.currentPartner === 'a') {
+                store.completePartnerA();
+                navigate('/quiz/waiting');
+            } else {
+                store.completePartnerB();
+                navigate('/results');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Submit nahi ho paaya 😢 Phir try karo!');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [canSubmit, isSubmitting, currentAnswers, store, navigate]);
+
+    // Whether we're on the LAST question
+    const isLastQuestion = currentIndex === totalQuestions - 1;
+    const isFirstQuestion = currentIndex === 0;
+
+    // Calculate progress
+    const answeredCount = questions.filter(
+        (q) => currentAnswers[q.id] !== undefined || store.isQuestionSkipped(q.id)
+    ).length;
+    const progressPercent = (answeredCount / totalQuestions) * 100;
+
+    if (!currentQuestion) return null;
+
+    // Category transition overlay
+    if (showCategoryTransition && transitionCategory) {
+        return (
+            <div className="min-h-screen bg-cinematic-bg bg-cover bg-center flex items-center justify-center px-4 relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,10,5,0.6)] to-[rgba(20,10,5,0.8)]" />
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="text-center relative z-10"
+                >
+                    <div className="text-6xl mb-4">{transitionCategory.emoji}</div>
+                    <h2 className="text-3xl font-heading font-black text-white">
+                        {transitionCategory.label}
+                    </h2>
+                </motion.div>
+            </div>
+        );
     }
-  }, [isSubmitting, currentAnswers, store, isPartnerA, navigate]);
 
-  const cat = categoryInfo[currentQuestion.category];
+    const partnerName =
+        store.currentPartner === 'a' ? store.partnerAName : store.partnerBName;
 
-  // Animation variants for directional slide
-  const slideVariants = {
-    enter: (dir: number) => ({
-      opacity: 0,
-      x: dir > 0 ? 80 : -80,
-    }),
-    center: {
-      opacity: 1,
-      x: 0,
-    },
-    exit: (dir: number) => ({
-      opacity: 0,
-      x: dir > 0 ? -80 : 80,
-    }),
-  };
+    return (
+        <div className="min-h-screen bg-cinematic-bg bg-cover bg-center relative flex flex-col">
+            {/* Dark overlay for readability */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[rgba(20,10,5,0.5)] to-[rgba(20,10,5,0.7)]" />
 
-  return (
-    <div className="min-h-screen bg-hero-gradient flex flex-col px-4 py-6">
-      <div className="max-w-md mx-auto w-full">
-        {/* Header: Name + Progress Counter */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground font-body">
-            {currentName}'s turn
-          </span>
-          <div className="flex items-center gap-3">
-            {/* Skip counter badge */}
-            <span
-              className={`text-xs font-body px-2 py-0.5 rounded-full border transition-colors ${store.skipsRemaining > 0
-                  ? 'border-neon-purple/50 text-neon-purple'
-                  : 'border-muted-foreground/30 text-muted-foreground'
-                }`}
-            >
-              ⚡ {store.skipsRemaining} skip{store.skipsRemaining !== 1 ? 's' : ''}
-            </span>
-            <span className="text-sm text-muted-foreground font-body">
-              {currentIndex + 1}/{questions.length}
-            </span>
-          </div>
-        </div>
+            {/* Content */}
+            <div className="relative z-10 flex flex-col flex-1 max-w-lg mx-auto w-full px-4 py-6">
+                {/* Top bar: progress + partner label */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-body text-white/75">
+                            {partnerName}'s Turn
+                        </span>
+                        <span className="text-sm font-body text-white/75">
+                            {currentIndex + 1} / {totalQuestions}
+                        </span>
+                    </div>
 
-        {/* Progress bar */}
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-6">
-          <motion.div
-            className="h-full bg-neon-gradient rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
-      </div>
+                    {/* Progress bar */}
+                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                            className="h-full bg-red-600 rounded-full"
+                            initial={false}
+                            animate={{ width: `${progressPercent}%` }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                        />
+                    </div>
+                </div>
 
-      {/* Question Area */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="max-w-md mx-auto w-full">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={currentQuestion.id}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-            >
-              {/* Category header */}
-              {showCategoryHeader && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 mb-4"
-                >
-                  <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-sm font-body text-primary font-semibold">{cat.label}</span>
-                </motion.div>
-              )}
+                {/* Category label */}
+                <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{currentQuestion.categoryEmoji}</span>
+                    <span className="text-xs font-heading font-semibold text-white/60 uppercase tracking-wider">
+                        {currentQuestion.categoryLabel}
+                    </span>
+                </div>
 
-              {/* Skipped badge */}
-              {isSkipped && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-purple/15 border border-neon-purple/30 text-neon-purple text-xs font-body mb-3"
-                >
-                  <SkipForward className="w-3 h-3" />
-                  Skipped
-                </motion.div>
-              )}
-
-              {/* Question text */}
-              <h2 className="text-xl md:text-2xl font-heading font-bold mb-8 leading-snug">
-                {currentQuestion.questionText}
-              </h2>
-
-              {/* Answer options */}
-              <div className="space-y-3">
-                {optionKeys.map((key, i) => {
-                  const isSelected = currentAnswer === key;
-                  return (
-                    <motion.button
-                      key={key}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => handleSelect(key)}
-                      disabled={isSkipped}
-                      className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all font-body text-sm leading-relaxed ${isSkipped
-                          ? 'bg-muted/30 border-border/50 text-foreground/40 cursor-not-allowed'
-                          : isSelected
-                            ? 'bg-primary/20 border-primary border-glow-pink text-foreground'
-                            : 'bg-card border-border text-foreground/90 hover:border-muted-foreground/50 active:bg-card/80'
-                        }`}
+                {/* Question card */}
+                <AnimatePresence mode="wait" custom={direction}>
+                    <motion.div
+                        key={currentQuestion.id}
+                        custom={direction}
+                        initial={{ opacity: 0, x: direction >= 0 ? 60 : -60 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: direction >= 0 ? -60 : 60 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        className="flex-1 flex flex-col"
                     >
-                      <span className="text-muted-foreground font-semibold mr-2">
-                        {optionLabels[i]}.
-                      </span>
-                      {currentQuestion.options[key]}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                        {/* Question text */}
+                        <div className="bg-white/[0.08] backdrop-blur-lg border border-white/[0.12] rounded-2xl p-5 mb-5 shadow-lg">
+                            <h2 className="text-xl md:text-2xl font-heading font-bold text-white leading-snug">
+                                {currentQuestion.questionText}
+                            </h2>
+                            {isSkipped && (
+                                <div className="mt-2 flex items-center gap-1.5">
+                                    <span className="text-xs font-body text-amber-400/80 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                                        ⏭ Skipped
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Answer options */}
+                        <div className="space-y-3">
+                            {(['a', 'b', 'c', 'd'] as const).map((optKey) => {
+                                const optionText = currentQuestion.options[optKey];
+                                const isSelected = selectedAnswer === optKey;
+                                const optionLabel = optKey.toUpperCase();
+
+                                return (
+                                    <motion.button
+                                        key={optKey}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => handleSelectAnswer(optKey)}
+                                        className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-center gap-3 ${isSelected
+                                            ? 'bg-red-600/20 border-red-500/60 shadow-[0_0_20px_rgba(220,38,38,0.2)]'
+                                            : 'bg-white/[0.08] border-white/[0.12] hover:bg-white/[0.12] hover:border-white/[0.2]'
+                                            }`}
+                                    >
+                                        <span
+                                            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-heading font-bold shrink-0 ${isSelected
+                                                ? 'bg-red-600 text-white'
+                                                : 'bg-white/10 text-white/60'
+                                                }`}
+                                        >
+                                            {optionLabel}
+                                        </span>
+                                        <span
+                                            className={`font-body text-sm leading-relaxed ${isSelected ? 'text-white' : 'text-white/80'
+                                                }`}
+                                        >
+                                            {optionText}
+                                        </span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+
+                {/* Bottom navigation bar */}
+                <div className="mt-auto pt-6">
+                    <div className="flex items-center gap-3">
+                        {/* Back button */}
+                        {!isFirstQuestion && (
+                            <motion.button
+                                whileTap={{ scale: 0.92 }}
+                                onClick={goBack}
+                                className="flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl font-body text-sm font-semibold border border-white/15 text-white/70 hover:bg-white/[0.08] hover:border-white/25 active:bg-white/10 transition-all shrink-0"
+                            >
+                                <ChevronLeft size={16} />
+                                Back
+                            </motion.button>
+                        )}
+
+                        {/* Main bottom button — Skip or Submit */}
+                        {isLastQuestion && canSubmit ? (
+                            <motion.button
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleComplete}
+                                disabled={isSubmitting}
+                                className={`flex-1 py-4 rounded-2xl font-heading font-bold text-base transition-all ${!isSubmitting
+                                    ? 'bg-red-600 text-white shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:bg-red-700'
+                                    : 'bg-white/10 text-white/30 cursor-not-allowed'
+                                    }`}
+                            >
+                                {isSubmitting ? 'Submitting...' : 'Submit Answers 🫡'}
+                            </motion.button>
+                        ) : (
+                            <motion.button
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={handleSkip}
+                                disabled={skipsRemaining <= 0 && !isSkipped}
+                                className={`flex-1 py-4 rounded-2xl font-heading font-bold text-base flex items-center justify-center gap-2 transition-all ${isSkipped
+                                        ? 'bg-amber-500/20 border border-amber-400/40 text-amber-400 hover:bg-amber-500/30'
+                                        : skipsRemaining > 0
+                                            ? 'bg-white/10 border border-white/15 text-white/70 hover:bg-white/15 hover:border-white/25'
+                                            : 'bg-white/5 border border-white/5 text-white/20 cursor-not-allowed'
+                                    }`}
+                            >
+                                <SkipForward size={18} />
+                                {isSkipped ? 'Unskip' : 'Skip'}
+                                {!isSkipped && skipsRemaining > 0 && (
+                                    <span className="ml-1 text-xs tabular-nums bg-white/10 px-2 py-0.5 rounded-lg text-white/50">
+                                        {skipsRemaining} left
+                                    </span>
+                                )}
+                                {!isSkipped && skipsRemaining <= 0 && (
+                                    <span className="ml-1 text-xs text-white/30">
+                                        No skips left
+                                    </span>
+                                )}
+                            </motion.button>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      {/* Bottom Navigation Bar */}
-      <div className="max-w-md mx-auto w-full mt-6">
-        <div className="flex items-center justify-between gap-2">
-          {/* Back button */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleBack}
-            disabled={!canGoBack}
-            className={`flex items-center gap-1 px-3 py-2.5 rounded-xl font-body text-sm transition-all ${canGoBack
-                ? 'bg-card border border-border text-foreground/80 hover:border-muted-foreground/50 active:bg-card/80'
-                : 'bg-muted/20 text-muted-foreground/40 cursor-not-allowed border border-transparent'
-              }`}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back
-          </motion.button>
-
-          {/* Center actions: Undo + Skip */}
-          <div className="flex items-center gap-2">
-            {/* Undo button */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleUndo}
-              disabled={!isAnswered}
-              className={`flex items-center gap-1 px-3 py-2.5 rounded-xl font-body text-xs transition-all ${isAnswered
-                  ? 'bg-card border border-border text-foreground/80 hover:border-neon-blue/50 active:bg-card/80'
-                  : 'bg-muted/20 text-muted-foreground/40 cursor-not-allowed border border-transparent'
-                }`}
-            >
-              <Undo2 className="w-3.5 h-3.5" />
-              Undo
-            </motion.button>
-
-            {/* Skip button */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSkip}
-              disabled={store.skipsRemaining <= 0 || isSkipped}
-              className={`flex items-center gap-1 px-3 py-2.5 rounded-xl font-body text-xs transition-all ${store.skipsRemaining > 0 && !isSkipped
-                  ? 'bg-neon-purple/10 border border-neon-purple/30 text-neon-purple hover:bg-neon-purple/20 active:bg-neon-purple/15'
-                  : 'bg-muted/20 text-muted-foreground/40 cursor-not-allowed border border-transparent'
-                }`}
-            >
-              <SkipForward className="w-3.5 h-3.5" />
-              Skip
-            </motion.button>
-          </div>
-
-          {/* Next / Finish button */}
-          {isLastQuestion && allComplete ? (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleFinish}
-              disabled={isSubmitting || (!isAnswered && !isSkipped)}
-              className={`flex items-center gap-1 px-4 py-2.5 rounded-xl font-body text-sm font-semibold transition-all ${isSubmitting
-                  ? 'bg-primary/50 text-primary-foreground/70 cursor-wait'
-                  : isAnswered || isSkipped
-                    ? 'bg-primary text-primary-foreground box-glow-pink hover:bg-primary/90 active:bg-primary/80'
-                    : 'bg-muted/20 text-muted-foreground/40 cursor-not-allowed border border-transparent'
-                }`}
-            >
-              {isSubmitting ? 'Saving...' : 'Finish 🎉'}
-            </motion.button>
-          ) : (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleNext}
-              disabled={!canGoForward || (!isAnswered && !isSkipped)}
-              className={`flex items-center gap-1 px-4 py-2.5 rounded-xl font-body text-sm font-semibold transition-all ${canGoForward && (isAnswered || isSkipped)
-                  ? 'bg-primary text-primary-foreground box-glow-pink hover:bg-primary/90 active:bg-primary/80'
-                  : 'bg-muted/20 text-muted-foreground/40 cursor-not-allowed border border-transparent'
-                }`}
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </motion.button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default QuizFlow;

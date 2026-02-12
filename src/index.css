@@ -115,6 +115,13 @@
     box-shadow: inset 0 0 15px hsl(330 100% 50% / 0.1), 0 0 15px hsl(330 100% 50% / 0.2);
   }
 
+  .bg-cinematic-bg {
+    background-image: url('/bokeh-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
   .border-glow-blue {
     border-color: hsl(190 100% 50% / 0.5);
     box-shadow: inset 0 0 15px hsl(190 100% 50% / 0.1), 0 0 15px hsl(190 100% 50% / 0.2);
