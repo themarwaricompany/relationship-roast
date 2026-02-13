@@ -1,78 +1,84 @@
-import type { OptionKey, Gender, QuizCategory } from '@/types';
-import { QUESTIONS } from './questions';
-import { SCORE_TIERS, MAX_RAW_SCORE } from './constants';
+import type { QuizOption } from '../data/questions';
 
-interface ScoreResult {
-    selfScore: number;
-    partnerScore: number;
-    categoryScores: Record<QuizCategory, { self: number; partner: number }>;
+export type ResultTier = 'user_gulaam' | 'partner_gulaam' | 'equal' | 'sigma' | 'toxic';
+
+export interface QuizResult {
+    tier: ResultTier;
+    title: string;
+    description: string;
+    emoji: string;
 }
 
-/**
- * Calculate raw scores from a set of answers
- */
-export function calculateRawScores(answers: Record<number, OptionKey>): ScoreResult {
-    let selfScore = 0;
-    let partnerScore = 0;
-    const categoryScores: Record<string, { self: number; partner: number }> = {};
+export function calculateResult(
+    answers: QuizOption[],
+    userName: string,
+    partnerName: string,
+): QuizResult {
+    let userTotal = 0;
+    let partnerTotal = 0;
+    let chaosCount = 0;
+    let chillCount = 0;
 
-    for (const question of QUESTIONS) {
-        const answer = answers[question.id];
-        if (!answer) continue;
+    for (const answer of answers) {
+        userTotal += answer.userScore;
+        partnerTotal += answer.partnerScore;
 
-        const option = question.options[answer];
-        selfScore += option.selfScore;
-        partnerScore += option.partnerScore;
-
-        if (!categoryScores[question.category]) {
-            categoryScores[question.category] = { self: 0, partner: 0 };
+        // Track "both" answers (chaotic) and "neither" answers (chill)
+        if (answer.userScore === 0.5 && answer.partnerScore === 0.5) {
+            chaosCount++;
         }
-        categoryScores[question.category].self += option.selfScore;
-        categoryScores[question.category].partner += option.partnerScore;
+        if (answer.userScore === 0 && answer.partnerScore === 0) {
+            chillCount++;
+        }
     }
 
+    // Tier 5 — Toxic/Chaotic (lots of "war/debate" answers)
+    if (chaosCount >= 4) {
+        return {
+            tier: 'toxic',
+            title: 'Toxic But Can\'t Leave 🔥',
+            description: `${userName} aur ${partnerName} — roz ladte hain, roz manate hain.`,
+            emoji: '🔥',
+        };
+    }
+
+    // Tier 4 — Sigma/Chill (lots of "trust/chill" answers)
+    if (chillCount >= 3) {
+        return {
+            tier: 'sigma',
+            title: 'Sigma Couple Alert 😎',
+            description: `${userName} aur ${partnerName} — no drama, just vibes.`,
+            emoji: '😎',
+        };
+    }
+
+    const diff = userTotal - partnerTotal;
+
+    // Tier 1 — User is the Gulaam
+    if (diff >= 1.5) {
+        return {
+            tier: 'user_gulaam',
+            title: 'Certified Joru Ka Gulaam 🏆',
+            description: `${userName} is officially ${partnerName} ka gulaam. No arguments.`,
+            emoji: '🏆',
+        };
+    }
+
+    // Tier 2 — Partner is the Gulaam
+    if (diff <= -1.5) {
+        return {
+            tier: 'partner_gulaam',
+            title: `${partnerName} Hai Asli Gulaam 😂`,
+            description: `${partnerName} thinks they run the show, but ${userName} is the real boss.`,
+            emoji: '😂',
+        };
+    }
+
+    // Tier 3 — Both equally whipped
     return {
-        selfScore,
-        partnerScore,
-        categoryScores: categoryScores as Record<QuizCategory, { self: number; partner: number }>,
+        tier: 'equal',
+        title: 'Dono Ek Dusre Ke Gulaam 🥰',
+        description: `${userName} aur ${partnerName} — dono equally pagal hain ek dusre ke liye.`,
+        emoji: '🥰',
     };
-}
-
-/**
- * Normalize raw score to 0-100 scale with positive bias
- */
-export function normalizeScore(rawScore: number): number {
-    // Apply positive bias: boost scores slightly to make them look better
-    // Formula: add 10% bonus, then cap at 100
-    const baseScore = (rawScore / MAX_RAW_SCORE) * 100;
-    const biasedScore = baseScore + (baseScore * 0.10); // 10% boost
-    
-    // Ensure score never exceeds 100
-    return Math.min(100, Math.round(biasedScore));
-}
-
-/**
- * Get title for a score based on gender
- */
-export function getTitle(score: number, gender: Gender): string {
-    const tier = SCORE_TIERS.find(t => score >= t.min && score <= t.max);
-    if (!tier) return "Part-Time Gulaam";
-
-    switch (gender) {
-        case 'male': return tier.male;
-        case 'female': return tier.female;
-        default: return tier.neutral;
-    }
-}
-
-/**
- * Generate share code for quiz session
- */
-export function generateShareCode(): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
 }
